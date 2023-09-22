@@ -42,33 +42,15 @@ exports.listenDevicesTokens = onDocumentCreated(
       console.log("is listener correctly");
       tokenSnapshot.forEach((doc) => {
         const token = doc.data().token;
-        console.log(token);
+        console.log("send notification to -->", token);
+        // TODO: send notificacions to list of tokens
       });
-      return event.data.ref.set({ isListen: true }, { merge: true });
+      return event.data.ref.set({ triggerWorking: "yes" }, { merge: true });
     } catch (error) {
       console.error("Error retrieving tokens:", error);
     }
   }
 );
-
-// export const listDeviceTokens = onRequest(async (req, res) => {
-//     try {
-//         const devicesSnapshot = await db.collection('devices').get();
-//         const tokens = [];
-
-//         devicesSnapshot.forEach(doc => {
-//             const token = doc.data().token;
-//             tokens.push(token);
-//             console.log(tokens);
-//             // TODO: send message to all tokens
-//         });
-
-//         return res.status(200).json({ tokens });
-//     } catch (error) {
-//         console.error('Error listing tokens:', error);
-//         return res.status(500).send('Internal Server Error');
-//     }
-// });
 
 // async function sendNotification(token) {
 //     try {
