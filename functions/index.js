@@ -27,7 +27,7 @@ exports.registerDeviceToken = onRequest(async (req, res) => {
     const tokenDevice = await db.collection("devices").add({ token: token });
     return res
       .status(200)
-      .json({ result: `Token ${(await tokenDevice).id} stored successfully` });
+      .json({ result: `Token ${tokenDevice.id} stored successfully` });
   } catch (error) {
     console.error("Error storing token:", error);
     return res.status(500).send("Internal Server Error");
