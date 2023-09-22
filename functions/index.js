@@ -34,13 +34,20 @@ exports.registerDeviceToken = onRequest(async (req, res) => {
   }
 });
 
-exports.listenForNewTokens = onDocumentCreated(
+exports.listenDevicesTokens = onDocumentCreated(
   "devices/{deviceId}",
-  (event) => {
-    const isListen = event.data.data().listen;
-    console.log("is listener correctly");
-
-    return event.data.ref.set({ isListen: true }, { merge: true });
+  async (event) => {
+    const tokenSnapshot = await db.collection("devices").get();
+    try {
+      console.log("is listener correctly");
+      tokenSnapshot.forEach((doc) => {
+        const token = doc.data().token;
+        console.log(token);
+      });
+      return event.data.ref.set({ isListen: true }, { merge: true });
+    } catch (error) {
+      console.error("Error retrieving tokens:", error);
+    }
   }
 );
 
