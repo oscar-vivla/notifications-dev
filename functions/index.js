@@ -37,10 +37,10 @@ exports.registerDeviceToken = onRequest(async (req, res) => {
 exports.listenDevicesTokens = onDocumentCreated(
   "devices/{deviceId}",
   async (event) => {
-    const tokenSnapshot = await db.collection("devices").get();
+    const tokenList = await db.collection("devices").get();
     try {
       console.log("is listener correctly");
-      tokenSnapshot.forEach((doc) => {
+      tokenList.forEach((doc) => {
         const token = doc.data().token;
         console.log("send notification to -->", token);
         // TODO: send notificacions to list of tokens
@@ -51,6 +51,25 @@ exports.listenDevicesTokens = onDocumentCreated(
     }
   }
 );
+
+exports.sendNotification = onRequest(async (req, res, token) => {
+  const { title, body } = req.query;
+  try {
+    const message = {
+      notification: {
+        title: title,
+        body: body,
+      },
+      token: token,
+    };
+
+    await messaging().send(message);
+    console.log("Notification sent to:", token);
+    res.status(200).send("Notification send correctly!");
+  } catch (error) {
+    console.error("Error sending the notification:", error);
+  }
+});
 
 // async function sendNotification(token) {
 //     try {
