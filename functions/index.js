@@ -11,14 +11,22 @@
 // https://firebase.google.com/docs/functions/get-started
 
 const { onRequest } = require("firebase-functions/v2/https");
-const { onDocumentCreated } = require("firebase-functions/v2/firestore");
+// const { onDocumentCreated } = require("firebase-functions/v2/firestore");
 
 // The Firebase Admin SDK to access Firestore.
 const { initializeApp } = require("firebase-admin/app");
 const { getFirestore } = require("firebase-admin/firestore");
-initializeApp();
+const { getMessaging } = require("firebase-admin/messaging");
+const serviceAccount = require("./config/serviceAccountKey.json");
+const { credential } = require("firebase-admin");
+// initializeApp();
+
+initializeApp({
+  credential: credential.cert(serviceAccount),
+});
 
 const db = getFirestore();
+const messaging = getMessaging();
 
 exports.registerDeviceToken = onRequest(async (req, res) => {
   const token = req.query.token;
@@ -34,27 +42,13 @@ exports.registerDeviceToken = onRequest(async (req, res) => {
   }
 });
 
-exports.listenDevicesTokens = onDocumentCreated(
-  "devices/{deviceId}",
-  async (event) => {
-    const tokenList = await db.collection("devices").get();
-    try {
-      console.log("is listener correctly");
-      tokenList.forEach((doc) => {
-        const token = doc.data().token;
-        console.log("send notification to -->", token);
-        // TODO: send notificacions to list of tokens
-      });
-      return event.data.ref.set({ triggerWorking: "yes" }, { merge: true });
-    } catch (error) {
-      console.error("Error retrieving tokens:", error);
-    }
-  }
-);
+exports.sendNotification = onRequest(async (req, res) => {
+  const { title, body, token } = req.query;
 
-exports.sendNotification = onRequest(async (req, res, token) => {
-  const { title, body } = req.query;
   try {
+    if (!title || !body || !token) {
+      throw new Error("Title, body, and token are required.");
+    }
     const message = {
       notification: {
         title: title,
@@ -64,44 +58,31 @@ exports.sendNotification = onRequest(async (req, res, token) => {
     };
 
     await messaging().send(message);
-    console.log("Notification sent to:", token);
+    console.log(
+      `send notification title: ${message.notification.title},
+      body: ${message.notification.body} to token: ${token}`
+    );
     res.status(200).send("Notification send correctly!");
   } catch (error) {
     console.error("Error sending the notification:", error);
+    res.status(500).send("Error sending the notification");
   }
 });
 
-// async function sendNotification(token) {
+// exports.listenDevicesTokens = onDocumentCreated(
+//   "devices/{deviceId}",
+//   async (event) => {
+//     const tokenList = await db.collection("devices").get();
 //     try {
-//         const message = {
-//             notification: {
-//                 title: 'New Token Registered',
-//                 body: 'A new token has been registered in the database.'
-//             },
-//             token: token
-//         };
-
-//         await messaging().send(message);
-//         console.log('Notification sent to:', token);
+//       console.log("is listener correctly");
+//       tokenList.forEach((doc) => {
+//         const token = doc.data().token;
+//         console.log("send notification to -->", token);
+//         // TODO: send notificacions to list of tokens
+//       });
+//       return event.data.ref.set({ triggerWorking: "yes" }, { merge: true });
 //     } catch (error) {
-//         console.error('Error sending the notification:', error);
+//       console.error("Error retrieving tokens:", error);
 //     }
-// }
-
-// _________________ FUNCION TOKENS DE PRUEBA
-// export const addTokenToCollection = onRequest(async (req, res) => {
-//     const token = req.query.token;
-
-//     if (!token) {
-//         return res.status(400).send('Token not provided');
-//     }
-
-//     try {
-//         const tokenRef = db.collection('tokens_test').doc();
-//         await tokenRef.set({ token: token });
-//         return res.status(200).send('Token stored successfully');
-//     } catch (error) {
-//         console.error('Error storing token:', error);
-//         return res.status(500).send('Internal Server Error');
-//     }
-// });
+//   }
+// );
