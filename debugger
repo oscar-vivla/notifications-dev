@@ -1,0 +1,4 @@
+npx @google-cloud/functions-framework --target=sendBroadcastNotification
+(--target= + funcion que quieras probar)
+curl "localhost:8080?message=prueba"
+(? + parametros que quieras pasar)

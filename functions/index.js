@@ -41,44 +41,48 @@ exports.registerDeviceToken = onRequest(async (req, res) => {
     return res.status(500).send("Internal Server Error");
   }
 });
-
-exports.sendNotification = onRequest(async (req, res) => {
-  const { title, body, token } = req.query;
-
+/**
+ *
+ * @param {string} token
+ * @param {string} txtmessage
+ */
+function sendNotification(token, txtmessage) {
   try {
-    if (!title || !body || !token) {
-      throw new Error("Title, body, and token are required.");
-    }
     const message = {
       notification: {
-        title: title,
-        body: body,
+        title: "notification",
+        body: txtmessage,
       },
       token: token,
     };
 
-    await messaging().send(message);
+    messaging().send(message);
     console.log(
       `send notification title: ${message.notification.title},
       body: ${message.notification.body} to token: ${token}`
     );
-    res.status(200).send("Notification send correctly!");
   } catch (error) {
     console.error("Error sending the notification:", error);
-    res.status(500).send("Error sending the notification");
   }
+}
+
+exports.TEST = onRequest(async (req, res) => {
+  sendNotification("hola", "adios");
+  return res.status(200).send({ rsult: "exito" });
 });
 
-exports.listenDevicesTokens = onRequest(async (req, res) => {
+exports.sendBroadcastNotification = onRequest(async (req, res) => {
+  console.log("entroo");
+  const message = req.query.message;
   const tokenList = await db.collection("devices").get();
   try {
     tokenList.forEach((doc) => {
       const token = doc.data().token;
       // TODO: send notificacions to list of tokens
-      this.sendNotification(token);
-      return res.status(200).send("Send message sucessfully");
+      sendNotification(token, message);
     });
     // return event.data.ref.set({ triggerWorking: "yes" }, { merge: true });
+    return res.status(200).send({ result: "Send message sucessfully" });
   } catch (error) {
     console.error("Error retrieving tokens:", error);
     return res.status(500).send("Error to list tokens and send message");
