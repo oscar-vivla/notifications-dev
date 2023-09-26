@@ -69,20 +69,18 @@ exports.sendNotification = onRequest(async (req, res) => {
   }
 });
 
-// exports.listenDevicesTokens = onDocumentCreated(
-//   "devices/{deviceId}",
-//   async (event) => {
-//     const tokenList = await db.collection("devices").get();
-//     try {
-//       console.log("is listener correctly");
-//       tokenList.forEach((doc) => {
-//         const token = doc.data().token;
-//         console.log("send notification to -->", token);
-//         // TODO: send notificacions to list of tokens
-//       });
-//       return event.data.ref.set({ triggerWorking: "yes" }, { merge: true });
-//     } catch (error) {
-//       console.error("Error retrieving tokens:", error);
-//     }
-//   }
-// );
+exports.listenDevicesTokens = onRequest(async (req, res) => {
+  const tokenList = await db.collection("devices").get();
+  try {
+    tokenList.forEach((doc) => {
+      const token = doc.data().token;
+      // TODO: send notificacions to list of tokens
+      this.sendNotification(token);
+      return res.status(200).send("Send message sucessfully");
+    });
+    // return event.data.ref.set({ triggerWorking: "yes" }, { merge: true });
+  } catch (error) {
+    console.error("Error retrieving tokens:", error);
+    return res.status(500).send("Error to list tokens and send message");
+  }
+});
