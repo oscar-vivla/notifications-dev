@@ -7,7 +7,8 @@
     "shell": "firebase functions:shell",
     "start": "npm run shell",
     "deploy": "firebase deploy --only functions",
-    "logs": "firebase functions:log"
+    "logs": "firebase functions:log",
+    "debug-functions": "npx @google-cloud/functions-framework --target=sendBroadcastNotification"
   },
   "engines": {
     "node": "18"

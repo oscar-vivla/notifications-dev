@@ -11,7 +11,7 @@
 // https://firebase.google.com/docs/functions/get-started
 
 const { onRequest } = require("firebase-functions/v2/https");
-// const { onDocumentCreated } = require("firebase-functions/v2/firestore");
+const { onDocumentCreated } = require("firebase-functions/v2/firestore");
 
 // The Firebase Admin SDK to access Firestore.
 const { initializeApp } = require("firebase-admin/app");
@@ -41,6 +41,27 @@ exports.registerDeviceToken = onRequest(async (req, res) => {
     return res.status(500).send("Internal Server Error");
   }
 });
+
+exports.onRegisterTokens = onDocumentCreated(
+  "devices/{deviceId}",
+  async (event) => {
+    const tokenSnapshot = await db.collection("devices").get();
+    try {
+      console.log("is listener correctly");
+      tokenSnapshot.forEach((doc) => {
+        const token = doc.data().token;
+        // TODO: send notificacions to list of tokens
+      });
+      return event.data.ref.set(
+        { createdAt: serverTimestamp() },
+        { merge: true }
+      );
+    } catch (error) {
+      console.error("Error retrieving tokens:", error);
+    }
+  }
+);
+
 /**
  *
  * @param {string} token
@@ -49,14 +70,14 @@ exports.registerDeviceToken = onRequest(async (req, res) => {
 function sendNotification(token, txtmessage) {
   try {
     const message = {
-      notification: {
+      data: {
         title: "notification",
         body: txtmessage,
       },
       token: token,
     };
 
-    messaging().send(message);
+    messaging.send(message);
     console.log(
       `send notification title: ${message.notification.title},
       body: ${message.notification.body} to token: ${token}`
