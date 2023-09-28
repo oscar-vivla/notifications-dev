@@ -10,7 +10,7 @@
 // Create and deploy your first functions
 // https://firebase.google.com/docs/functions/get-started
 
-const { onRequest } = require("firebase-functions/v2/https");
+const { onRequest, serverTimestamp } = require("firebase-functions/v2/https");
 const { onDocumentCreated } = require("firebase-functions/v2/firestore");
 
 // The Firebase Admin SDK to access Firestore.
@@ -50,6 +50,7 @@ exports.onRegisterTokens = onDocumentCreated(
       console.log("is listener correctly");
       tokenSnapshot.forEach((doc) => {
         const token = doc.data().token;
+        console.log("token -->", token);
         // TODO: send notificacions to list of tokens
       });
       return event.data.ref.set(
