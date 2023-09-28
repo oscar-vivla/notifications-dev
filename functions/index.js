@@ -87,11 +87,6 @@ function sendNotification(token, txtmessage) {
   }
 }
 
-exports.TEST = onRequest(async (req, res) => {
-  sendNotification("hola", "adios");
-  return res.status(200).send({ rsult: "exito" });
-});
-
 exports.sendBroadcastNotification = onRequest(async (req, res) => {
   console.log("entroo");
   const message = req.query.message;
